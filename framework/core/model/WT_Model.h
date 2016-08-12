@@ -15,6 +15,7 @@
 
 @interface WTModel : NSObject//<NSCoding>
 
++ (instancetype)model;
 - (instancetype)initWithDictionary:(NSDictionary *)otherDictionary;
 
 @end

@@ -13,11 +13,18 @@
 
 #import "WT_Model.h"
 
+#import "NSObject+WT_Extension.h"
+
 @implementation WTModel
+
++ (instancetype)model
+{
+    return [[[self class] alloc] init];
+}
 
 - (instancetype)initWithDictionary:(NSDictionary *)otherDictionary
 {
-    return nil;
+    return [otherDictionary toObjectWithClass:[self class]];
 }
 
 //- (NSDictionary *)codableProperties

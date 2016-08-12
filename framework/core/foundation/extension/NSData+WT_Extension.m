@@ -12,6 +12,7 @@
 //
 
 #import "NSData+WT_Extension.h"
+#import <CommonCrypto/CommonDigest.h>
 
 @implementation NSData (WT_Extension)
 

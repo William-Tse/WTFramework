@@ -7,18 +7,18 @@
 //  Copyright © 2016 WTFramework. All rights reserved.
 //  Created by William.Tse on 16/7/14.
 //
-//  WT_UIBoard.m
+//  WT_ViewController.m
 //  WTFramework
 //
 
-#import "WT_UIBoard.h"
+#import "WT_ViewController.h"
 
 #import "NSObject+WT_UIPropertyMapping.h"
 #import "NSObject+WT_Http.h"
 
 #import "_pragma_push.h"
 
-@implementation WTUIBoard
+@implementation WTViewController
 {
     id _navigationBarLeft;
     id _navigationBarRight;
@@ -40,7 +40,7 @@
 - (void)dealloc
 {
     [self cancelAllRequests];
-    [self sendSignal:WTUIBoard.Unload withObject:nil];
+    [self sendSignal:self.Unload withObject:nil];
     
     [NSObject cancelPreviousPerformRequestsWithTarget:self];
 }
@@ -48,7 +48,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
-    [self sendSignal:WTUIBoard.Load withObject:nil];
+    [self sendSignal:self.Load withObject:nil];
 }
 
 - (void)loadView
@@ -60,7 +60,7 @@
         [self initialize];
         [self mapPropertiesFromView:self.view];
         
-        [self sendSignal:WTUIBoard.CreateViews withObject:nil];
+        [self sendSignal:self.CreateViews withObject:nil];
         _viewCreated = YES;
     }
 }
@@ -74,10 +74,10 @@
         [self initialize];
         [self mapPropertiesFromView:self.view];
         
-        [self sendSignal:WTUIBoard.CreateViews withObject:nil];
+        [self sendSignal:self.CreateViews withObject:nil];
         _viewCreated = YES;
     }
-    [self sendSignal:WTUIBoard.WillAppear withObject:nil];
+    [self sendSignal:self.WillAppear withObject:nil];
     
     [self refreshLayout];
 }
@@ -86,27 +86,27 @@
 {
     [super viewDidAppear:animated];
     
-    [self sendSignal:WTUIBoard.DidAppear withObject:nil];
+    [self sendSignal:self.DidAppear withObject:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
     [super viewWillDisappear:animated];
     
-    [self sendSignal:WTUIBoard.WillDisappear withObject:nil];
+    [self sendSignal:self.WillDisappear withObject:nil];
 }
 
 - (void)viewDidDisappear:(BOOL)animated
 {
     [super viewDidDisappear:animated];
     
-    [self sendSignal:WTUIBoard.DidDisappear withObject:nil];
+    [self sendSignal:self.DidDisappear withObject:nil];
 }
 
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
-    [self sendSignal:WTUIBoard.MemoryWarning withObject:nil];
+    [self sendSignal:self.MemoryWarning withObject:nil];
 }
 
 - (void)initialize {}

@@ -31,8 +31,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NSObject(WT_Serialize)
 
-+ (instancetype)objectFromDictionary:(id)dictionary;
-+ (NSArray *)objectsFromArray:(id)array;
++ (instancetype)objectFromDictionary:(NSDictionary *)dictionary;
++ (NSArray *)objectsFromArray:(NSArray *)array;
+
++ (instancetype)objectFromJSONString:(NSString *)json;
++ (NSArray *)objectsFromJSONString:(NSString *)json;
 
 - (nullable id)serialize;
 - (nullable id)deserialize;

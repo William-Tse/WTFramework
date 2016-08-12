@@ -240,6 +240,11 @@
 
 - (void)sendSignal:(NSString *)signal withObject:(nullable id)object
 {
+    if(![signal hasPrefix:@"signal."])
+    {
+        signal = [NSString stringWithFormat:@"signal.%@", signal];
+    }
+    
     NSArray *arrNames = [signal componentsSeparatedByString:@"."];
     if(arrNames.count>2)
     {

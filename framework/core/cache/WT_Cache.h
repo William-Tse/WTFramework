@@ -13,6 +13,8 @@
 
 #import "WT_Precompile.h"
 
+#import "WT_FileSystem.h"
+
 //#import "WT_Keychain.h"
 //#import "WT_UserDefaults.h"
 

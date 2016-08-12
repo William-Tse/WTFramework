@@ -16,6 +16,7 @@
 #import "NSObject+WT_Extension.h"
 #import "NSArray+WT_Extension.h"
 #import "WT_Notification.h"
+#import "WT_Http.h"
 
 #undef	DEFAULT_MAX_COUNT
 #define DEFAULT_MAX_COUNT	(48)
@@ -169,6 +170,7 @@
 	{
 		if ( _clearWhenMemoryLow )
 		{
+            [WTHttp clearCachedResponses];
             if(_cacheKeys.count)
             {
                 [self removeAllObjects];

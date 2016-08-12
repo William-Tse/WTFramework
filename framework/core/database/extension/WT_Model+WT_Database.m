@@ -25,7 +25,7 @@
 
 + (WTDatabaseFieldAttribute)fieldOfProperty:(NSString *)prop
 {
-    WTDatabaseFieldAttribute field;
+    WTDatabaseFieldAttribute field = {};
     SEL sel = NSSelectorFromString([NSString stringWithFormat:@"__field_%@", prop]);
     if([self respondsToSelector:sel])
     {
@@ -89,10 +89,12 @@
             [dict setObject:value?:[NSNull null] forKey:primaryKey];
         }
         return ^ (WTDatabase *db){
-            db.WHERE(dict).DELETE();
+            db.modelClass = [self class];
+            db.CREATE().WHERE(dict).DELETE();
         };
     }
     return ^ (WTDatabase *db){
+        db.modelClass = [self class];
         NSLog(@"%@", @"Delete failed.");
     };
 }
@@ -119,7 +121,8 @@
     }
     
     return ^ (WTDatabase *db){
-        db.SET(dict).REPLACE();
+        db.modelClass = [self class];
+        db.CREATE().SET(dict).REPLACE();
     };
 }
 

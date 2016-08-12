@@ -343,4 +343,9 @@
     }
 }
 
++ (void)clearCachedResponses
+{
+    [[[self sharedInstance] cache] removeAllCachedResponses];
+}
+
 @end

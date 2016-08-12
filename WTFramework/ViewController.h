@@ -2,13 +2,14 @@
 //  ViewController.h
 //  WTFramework
 //
-//  Created by 好团队 on 16/8/9.
-//  Copyright © 2016年 William.Tse. All rights reserved.
+//  Copyright © 2016 WTFramework. All rights reserved.
+//  Created by William.Tse on 16/7/14.
 //
 
-#import <UIKit/UIKit.h>
+#import "WT.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : WTViewController
+
 
 
 @end

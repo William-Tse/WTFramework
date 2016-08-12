@@ -15,7 +15,6 @@
 #import <objc/runtime.h>
 
 #import <Foundation/Foundation.h>
-#import <CommonCrypto/CommonDigest.h>
 #import <UIKit/UIKit.h>
 
 // ----------------------------------
