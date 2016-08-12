@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (__kindof UIView *(^)(NSString *))NAME;
 - (__kindof UIView *(^)(__nullable id))DATA;
 - (__kindof UIView *(^)(NSString *, __nullable id))SET_VALUE;
+- (__kindof UIView *(^)(NSString *, ...))ADD_SIGNAL_LISTENER;
 
 - (__kindof UIView *(^)(id))DELEGATE;
 - (__kindof UIView *(^)(id))DATASOURCE;

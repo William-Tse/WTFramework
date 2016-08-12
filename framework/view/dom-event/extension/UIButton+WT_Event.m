@@ -34,7 +34,6 @@
     UIButton * btn = [self buttonWithType:UIButtonTypeCustom];
     [btn addSignalListener:self.TouchDown];
     [btn addSignalListener:self.TouchUpInside];
-
     
     return btn;
 }
@@ -44,11 +43,17 @@
     
 }
 
-- (NSDictionary *)supportActions
+- (NSDictionary *)actionMaps
 {
     return @{
         self.TouchDown:@(UIControlEventTouchDown),
-        self.TouchUpInside:@(UIControlEventTouchUpInside)
+        self.TouchUpInside:@(UIControlEventTouchUpInside),
+        self.TouchUpOutside:@(UIControlEventTouchUpOutside),
+        self.TouchDownRepeat:@(UIControlEventTouchDownRepeat),
+        self.DragEnter:@(UIControlEventTouchDragEnter),
+        self.DragInside:@(UIControlEventTouchDragInside),
+        self.DragOutside:@(UIControlEventTouchDragOutside),
+        self.DragExit:@(UIControlEventTouchDragExit)
     };
 }
 
@@ -58,7 +63,7 @@
     if(arrSignal.count>2)
     {
         SEL sel = NSSelectorFromString([NSString stringWithFormat:@"did%@", arrSignal[2]]);
-        id value = [[self supportActions] objectForKey:signal];
+        id value = [[self actionMaps] objectForKey:signal];
         if(value)
         {
             [self addTarget:self action:sel forControlEvents:[value integerValue]];
@@ -68,7 +73,7 @@
 
 - (void)didHandleEvent:(UIControlEvents)event
 {
-    WTKeyValuePair *pair = [[self supportActions] findOne:^BOOL(id key, id value) {
+    WTKeyValuePair *pair = [[self actionMaps] findOne:^BOOL(id key, id value) {
         return event == [value integerValue];
     }];
     if(pair)
@@ -95,6 +100,31 @@
 - (void)didTouchDownRepeat
 {
     [self didHandleEvent:UIControlEventTouchDownRepeat];
+}
+
+- (void)didTouchLong
+{
+    //TODO:
+}
+
+- (void)didDragEnter
+{
+    [self didHandleEvent:UIControlEventTouchDragEnter];
+}
+
+- (void)didDragInside
+{
+    [self didHandleEvent:UIControlEventTouchDragInside];
+}
+
+- (void)didDragOutside
+{
+    [self didHandleEvent:UIControlEventTouchDragOutside];
+}
+
+- (void)didDragExit
+{
+    [self didHandleEvent:UIControlEventTouchDragExit];
 }
 
 @end

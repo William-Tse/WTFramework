@@ -13,7 +13,6 @@
 
 #import "WT_Precompile.h"
 
-#import <sqlite3.h>
 #import "FMDB.h"
 #import "WT_Model.h"
 
@@ -23,14 +22,14 @@ NS_ASSUME_NONNULL_BEGIN
 @class WTDatabase;
 
 typedef struct __attribute__((objc_boxable)) {
-    bool primaryKey;
-    bool autoIncrement;
-    bool unique;
-    bool index;
-    bool nonNull;
-    int type;
-    int size;
-    const char * __nullable  defaultValue;
+    BOOL primaryKey;
+    BOOL autoIncrement;
+    BOOL unique;
+    BOOL index;
+    BOOL nonNull;
+    NSInteger type;
+    NSInteger size;
+    char * __nullable defaultValue;
 } WTDatabaseFieldAttribute;
 
 #if NS_BLOCKS_AVAILABLE
@@ -68,6 +67,16 @@ typedef id __nullable           (^WTDatabaseObjectBlockV)( void );
 
 - (id)executeScalarWithClass:(Class)clazz sql:(NSString *)sql, ...;
 - (NSArray *)executeQueryWith:(Class)clazz sql:(NSString *)sql, ...;
+
+- (BOOL)beginTransaction;
+- (BOOL)beginDeferredTransaction;
+- (BOOL)commit;
+- (BOOL)rollback;
+- (BOOL)inTransaction;
+
+- (void)clearCachedStatements;
+- (BOOL)shouldCacheStatements;
+- (void)setShouldCacheStatements:(BOOL)value;
 
 #pragma mark -
 

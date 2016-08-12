@@ -160,6 +160,16 @@
     return [array toArrayWithClass:[self class]];
 }
 
++ (instancetype)objectFromJSONString:(NSString *)json
+{
+    return [json toObjectWithClass:[self class]];
+}
+
++ (NSArray *)objectsFromJSONString:(NSString *)json
+{
+    return [json toArrayWithClass:[self class]];
+}
+
 - (nullable id)serialize
 {
     id obj = self;

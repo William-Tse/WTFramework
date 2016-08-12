@@ -27,9 +27,9 @@
 {
     if(!_dbQueue)
     {
-        NSString *dir = [[WTFileSystem baseDirectory] stringByAppendingPathComponent:@"Documents/Database/"];
+        NSString *dir = [[WTFileSystem baseDirectory] stringByAppendingPathComponent:@"Database"];
         
-        if ([[NSFileManager defaultManager] fileExistsAtPath:dir isDirectory:NULL] ) {
+        if (![[NSFileManager defaultManager] fileExistsAtPath:dir isDirectory:NULL] ) {
             BOOL result = [[NSFileManager defaultManager] createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
             if ( !result ) {
                 return nil;

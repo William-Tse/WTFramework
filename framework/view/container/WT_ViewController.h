@@ -7,7 +7,7 @@
 //  Copyright © 2016 WTFramework. All rights reserved.
 //  Created by William.Tse on 16/7/14.
 //
-//  WT_UIBoard.h
+//  WT_ViewController.h
 //  WTFramework
 //
 
@@ -15,7 +15,7 @@
 
 #import "WT_Event.h"
 
-@interface WTUIBoard : UIViewController
+@interface WTViewController : UIViewController
 
 @signal(Load)
 @signal(Unload)

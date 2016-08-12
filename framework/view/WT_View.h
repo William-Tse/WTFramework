@@ -11,9 +11,8 @@
 //  WTFramework
 //
 
-#import "WT_Common"
-#import "WT_UIBoard.h"
-#import "WT_Capability.h"
+#import "WT_Common.h"
+#import "WT_ViewController.h"
 #import "WT_DataBinding.h"
 #import "WT_Event.h"
 #import "WT_Chain.h"

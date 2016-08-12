@@ -2,8 +2,8 @@
 //  ViewController.m
 //  WTFramework
 //
-//  Created by 好团队 on 16/8/9.
-//  Copyright © 2016年 William.Tse. All rights reserved.
+//  Copyright © 2016 WTFramework. All rights reserved.
+//  Created by William.Tse on 16/7/14.
 //
 
 #import "ViewController.h"
@@ -14,14 +14,39 @@
 
 @implementation ViewController
 
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+- (void)onLoad
+{
+    
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void)onCreateView
+{
+    
+}
+
+- (void)onWillAppear
+{
+
+}
+
+- (void)onDidAppear
+{
+
+}
+
+- (void)onWillDisappear
+{
+    
+}
+
+- (void)onDidDisappear
+{
+    
+}
+
+- (void)onUnload
+{
+
 }
 
 @end

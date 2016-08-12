@@ -13,6 +13,7 @@
 
 #import "UIView+WT_Chain.h"
 
+#import "WT_Signal.h"
 #import "UIView+WT_Extension.h"
 
 @implementation UIView (WT_Chain)
@@ -72,6 +73,28 @@
         {
             [self logInfo:@"SET_VALUE" info:[NSString stringWithFormat:@"%@, %@", property, value]];
         }
+        return self;
+    };
+}
+
+- (__kindof UIView *(^)(NSString *, ...))ADD_SIGNAL_LISTENER
+{
+    return ^id(NSString *signal, ...){
+        
+        va_list args;
+        va_start( args, signal );
+        
+        for ( ;; signal = nil)
+        {
+            NSString * sign = signal ? signal : va_arg( args, NSString * );
+            if ( nil == sign )
+                break;
+            
+            [self addSignalListener:sign];
+        }
+        va_end( args );
+        
+        [self addSignalListener:signal];
         return self;
     };
 }
@@ -452,7 +475,7 @@
 }
 
 //---------------
-//  BeeUIImageView
+//  UIImageView
 //---------------
 
 - (__kindof UIView *(^)(id))IMAGE
