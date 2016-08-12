@@ -13,7 +13,7 @@
 
 #import "WT_Precompile.h"
 
-#import "FMDB.h"
+#import <FMDB/FMDB.h>
 #import "WT_Model.h"
 
 
