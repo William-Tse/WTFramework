@@ -13,6 +13,7 @@
 
 #import "WT_Database.h"
 
+#import <sqlite3.h>
 #import "NSString+WT_Extension.h"
 #import "NSArray+WT_Extension.h"
 #import "WT_Model+WT_Database.h"
@@ -51,6 +52,19 @@
     self = [super init];
     if(self)
     {
+        _field = [NSMutableArray array];
+        _table = [NSMutableArray array];
+        _select = [NSMutableArray array];
+        _from = [NSMutableArray array];
+        _groupby = [NSMutableArray array];
+        _having = [NSMutableArray array];
+        _where = [NSMutableArray array];
+        _like = [NSMutableArray array];
+        _orderby = [NSMutableArray array];
+        _limit = 0;
+        _offset = 0;
+        _set = [NSMutableDictionary dictionary];
+        
         self.db = db;
     }
     return self;
@@ -58,7 +72,8 @@
 
 - (void)setModelClass:(Class)modelClass
 {
-    NSAssert(![modelClass isSubclassOfClass:[WTModel class]], @"ModelClass must be a subclass of WTModel class");
+    NSAssert([modelClass isSubclassOfClass:[WTModel class]], @"ModelClass must be a subclass of WTModel class");
+    _modelClass = modelClass;
 }
 
 - (id)executeScalar:(NSString *)sql, ...
@@ -116,22 +131,91 @@
 
 - (id)executeScalarWithClass:(Class)clazz sql:(NSString *)sql, ...
 {
-    //TODO:
+    va_list args;
+    va_start(args, sql);
+    FMResultSet *set = [self.db executeQuery:sql withVAList:args];
+    va_end(args);
+    
+    if(set)
+    {
+        id result = nil;
+        if ([set next]) {
+            result = [set objectForColumnIndex:0];
+        }
+        [set close];
+        
+        if(![result isKindOfClass:[NSNull class]])
+        {
+            return [result toObjectWithClass:clazz];
+        }
+    }
     return nil;
 }
 
 - (NSArray *)executeQueryWith:(Class)clazz sql:(NSString *)sql, ...
 {
-    //TODO:
+    va_list args;
+    va_start(args, sql);
+    FMResultSet *set = [self.db executeQuery:sql withVAList:args];
+    va_end(args);
+    
+    if(set)
+    {
+        NSMutableArray *resultArray = [[NSMutableArray alloc] init];
+        while ([set next]) {
+            NSDictionary * dict = [set resultDictionary];
+            [resultArray addObject:dict];
+        }
+        [set close];
+        return [resultArray toArrayWithClass:clazz];
+    }
     return nil;
+}
+
+- (BOOL)beginTransaction
+{
+    return [_db beginTransaction];
+}
+
+- (BOOL)beginDeferredTransaction
+{
+    return [_db beginDeferredTransaction];
+}
+
+- (BOOL)commit
+{
+    return [_db commit];
+}
+
+- (BOOL)rollback
+{
+    return [_db rollback];
+}
+
+- (BOOL)inTransaction
+{
+    return [_db inTransaction];
+}
+
+- (void)clearCachedStatements
+{
+    [_db clearCachedStatements];
+}
+
+- (BOOL)shouldCacheStatements
+{
+    return [_db shouldCacheStatements];
+}
+
+- (void)setShouldCacheStatements:(BOOL)value
+{
+    [_db setShouldCacheStatements:value];
 }
 
 #pragma mark -
 
 - (void)__internalExtendField:(WTDatabaseFieldAttribute)field toDictionary:(NSMutableDictionary *)dict
 {
-    [dict setObject:@(field.primaryKey) forKey:@"primaryKey"];
-    [dict setObject:@(field.autoIncrement) forKey:@"autoIncrement"];
     [dict setObject:@(field.unique) forKey:@"unique"];
     [dict setObject:@(field.index) forKey:@"index"];
     [dict setObject:@(field.nonNull) forKey:@"nonNull"];
@@ -144,31 +228,37 @@
         [dict removeObjectForKey:@"defaultValue"];
     }
     
-    if(field.type){
-        if(field.primaryKey)
-        {
-            [dict setObject:@"INTEGER" forKey:@"type"];
+    if(field.type)
+    {
+        switch (field.type) {
+            case SQLITE_INTEGER:
+                [dict setObject:@"INTEGER" forKey:@"type"];
+                break;
+            case SQLITE_FLOAT:
+                [dict setObject:@"FLOAT" forKey:@"type"];
+                break;
+            case SQLITE_BLOB:
+                [dict setObject:@"BLOB" forKey:@"type"];
+                break;
+            case SQLITE_TEXT:
+                [dict setObject:@"TEXT" forKey:@"type"];
+                break;
+            default:
+                [dict removeObjectForKey:@"type"];
+                break;
         }
-        else
-        {
-            switch (field.type) {
-                case SQLITE_INTEGER:
-                    [dict setObject:@"INTEGER" forKey:@"type"];
-                    break;
-                case SQLITE_FLOAT:
-                    [dict setObject:@"FLOAT" forKey:@"type"];
-                    break;
-                case SQLITE_BLOB:
-                    [dict setObject:@"BLOB" forKey:@"type"];
-                    break;
-                case SQLITE_TEXT:
-                    [dict setObject:@"TEXT" forKey:@"type"];
-                    break;
-                default:
-                    [dict removeObjectForKey:@"type"];
-                    break;
-            }
-        }
+    }
+    
+    if(field.primaryKey)
+    {
+        [dict setObject:@"INTEGER" forKey:@"type"];
+        [dict setObject:@YES forKey:@"primaryKey"];
+        [dict setObject:@(field.autoIncrement) forKey:@"autoIncrement"];
+    }
+    else
+    {
+        [dict setObject:@NO forKey:@"primaryKey"];
+        [dict setObject:@NO forKey:@"autoIncrement"];
     }
 }
 
@@ -483,6 +573,10 @@
                 [sql appendFormat:@", %@", from];
             }
         }
+    }
+    else
+    {
+        [sql appendFormat:@" FROM %@ ", [[self modelClass] tableName]];
     }
     
     if ( _where.count || _like.count )
@@ -858,29 +952,29 @@
             [sql appendFormat:@"(%@)", size];
         }
         
-        if ( PK && PK.intValue )
+        if ( PK && PK.boolValue )
         {
             [sql appendString:@" PRIMARY KEY"];
         }
         
-        if ( AI && AI.intValue )
+        if ( AI && AI.boolValue )
         {
             [sql appendString:@" AUTOINCREMENT"];
         }
         
-        if ( UN && UN.intValue )
+        if ( UN && UN.boolValue )
         {
             [sql appendString:@" UNIQUE"];
         }
         
-        if ( NN && NN.intValue )
+        if ( NN && NN.boolValue )
         {
             [sql appendString:@" NOT NULL"];
         }
         
-        if(IX)
+        if( IX && IX.boolValue )
         {
-            [arrIndex addObject:name];
+            [arrIndex addObject:[NSString stringWithFormat:@"CREATE INDEX IF NOT EXISTS ix_%@_%@ ON %@ (%@);", table, name, table, name]];
         }
         
         if ( defaultValue )
@@ -906,26 +1000,10 @@
     
     [sql appendString:@" );\n"];
     
-    NSMutableString * sqlIndex = [NSMutableString string];
-    
-    [sqlIndex appendFormat:@"CREATE INDEX IF NOT EXISTS index_%@ ON %@ ( ", table, table];
-    
-    for ( NSInteger i = 0; i < arrIndex.count; ++i )
+    if(arrIndex.count)
     {
-        NSString * field = [arrIndex objectAtIndex:i];
-        
-        if ( 0 == i )
-        {
-            [sql appendFormat:@"%@", field];
-        }
-        else
-        {
-            [sql appendFormat:@", %@", field];
-        }
+        [sql appendString:[arrIndex componentsJoinedByString:@"\n"]];
     }
-    
-    [sql appendString:@" )\n"];
-    
     return sql;
 }
 
@@ -1152,7 +1230,7 @@
 
 - (WTDatabaseBlock)WRAP
 {
-    NSAssert(_wrap, @"Multinest wrapping is nonsupport.");
+    NSAssert(!_wrap, @"Multinest wrapping is nonsupport.");
     
     _wrap = YES;
     [_where addObject:[NSMutableArray array]];
@@ -1179,10 +1257,10 @@
         NSString *field = nil;
         NSInteger index = 0;
         
-        for ( ;; value = nil)
+        for ( ;; value = nil, ++index) 
         {
-            NSObject * val = value ? value : va_arg( args, NSObject * );
-            if ( nil == val )
+            NSObject * val = value ? : va_arg( args, NSObject * );
+            if ( nil == val || [WTRuntime typeOfClass:[val class]] == WTRuntimeTypeObject)
                 break;
             
             if ( [val isKindOfClass:[NSDictionary class]] )
@@ -1222,10 +1300,10 @@
         NSString *field = nil;
         NSInteger index = 0;
         
-        for ( ;; value = nil)
+        for ( ;; value = nil, ++index)
         {
-            NSObject * val = value ? value : va_arg( args, NSObject * );
-            if ( nil == val )
+            NSObject * val = value ? : va_arg( args, NSObject * );
+            if ( nil == val || [WTRuntime typeOfClass:[val class]] == WTRuntimeTypeObject)
                 break;
             
             if ( [val isKindOfClass:[NSDictionary class]] )
@@ -1555,10 +1633,10 @@
         NSString *field = nil;
         NSInteger index = 0;
         
-        for ( ;; value = nil)
+        for ( ;; value = nil, ++index)
         {
-            NSObject * val = value ? value : va_arg( args, NSObject * );
-            if ( nil == val )
+            NSObject * val = value ? : va_arg( args, NSObject * );
+            if ( nil == val || [WTRuntime typeOfClass:[val class]] == WTRuntimeTypeObject)
                 break;
             
             if ( [val isKindOfClass:[NSDictionary class]] )
@@ -1685,9 +1763,6 @@
 {
     return ^ BOOL ( void )
     {
-        if ( 0 == _where.count && 0 == _like.count )
-            return NO;
-        
         NSString * sql = [self internalCompileDelete:[[self modelClass] tableName]];
         
         [self __internalResetWrite];

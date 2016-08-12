@@ -72,7 +72,7 @@
     }
     else if(typeClazz == [NSNumber class] || [typeClazz isSubclassOfClass:[NSNumber class]])
     {
-        return WTRuntimeTypeString;
+        return WTRuntimeTypeNumber;
     }
     else if(typeClazz == [NSList class] || [typeClazz isSubclassOfClass:[NSList class]])
     {

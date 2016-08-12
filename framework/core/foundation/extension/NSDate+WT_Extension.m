@@ -18,37 +18,37 @@
 
 - (NSInteger)year
 {
-    return [[NSCalendar currentCalendar] components:NSYearCalendarUnit fromDate:self].year;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitYear fromDate:self].year;
 }
 
 - (NSInteger)month
 {
-    return [[NSCalendar currentCalendar] components:NSMonthCalendarUnit fromDate:self].month;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitMonth fromDate:self].month;
 }
 
 - (NSInteger)day
 {
-    return [[NSCalendar currentCalendar] components:NSDayCalendarUnit fromDate:self].day;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitDay fromDate:self].day;
 }
 
 - (NSInteger)hour
 {
-    return [[NSCalendar currentCalendar] components:NSHourCalendarUnit fromDate:self].hour;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitHour fromDate:self].hour;
 }
 
 - (NSInteger)minute
 {
-    return [[NSCalendar currentCalendar] components:NSMinuteCalendarUnit fromDate:self].minute;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitMinute fromDate:self].minute;
 }
 
 - (NSInteger)second
 {
-    return [[NSCalendar currentCalendar] components:NSSecondCalendarUnit fromDate:self].second;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitSecond fromDate:self].second;
 }
 
 - (NSInteger)weekday
 {
-    return [[NSCalendar currentCalendar] components:NSWeekdayCalendarUnit fromDate:self].weekday-1;
+    return [[NSCalendar currentCalendar] components:NSCalendarUnitWeekday fromDate:self].weekday-1;
 }
 
 #pragma mark -
@@ -107,14 +107,14 @@
         second = 59;
     
     if(millisecond>999){
-        NSString *strMillisecond = [NSString stringWithFormat:@"%ld", millisecond];
+        NSString *strMillisecond = [NSString stringWithFormat:@"%ld", (long)millisecond];
         millisecond = [[strMillisecond substringToIndex:2] integerValue];
     }
     
     if(zone>=24*60*60)
         zone = 24*60*60-1;
     
-    NSString *strDate = [NSString stringWithFormat:@"%4ld-%2ld-%2ld %2ld:%2ld:%2ld %3ld", year, month, day, hour, minute, second, millisecond];
+    NSString *strDate = [NSString stringWithFormat:@"%4ld-%2ld-%2ld %2ld:%2ld:%2ld %3ld", (long)year, (long)month, (long)day, (long)hour, (long)minute, (long)second, (long)millisecond];
     
     NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
     [formatter setTimeZone:[NSTimeZone timeZoneForSecondsFromGMT:zone]];

@@ -31,8 +31,8 @@
 	self = [super init];
 	if ( self )
 	{
-		self.cacheUser = @"";
-//		self.cachePath = [NSString stringWithFormat:@"%@/%@/Cache/", [BeeSandbox libCachePath], [BeeSystemInfo appVersion]];
+        _cacheUser = @"";
+		_cachePath = [[WTFileSystem baseDirectory] stringByAppendingPathComponent:@"Cache"];
 		
 		_fileManager = [[NSFileManager alloc] init];
 	}
@@ -43,13 +43,13 @@
 {
 	NSString * pathName = nil;
 
-	if ( self.cacheUser && [self.cacheUser length] )
+	if ( _cacheUser && [_cacheUser length] )
 	{
-		pathName = [self.cachePath stringByAppendingFormat:@"%@/", self.cacheUser];
+		pathName = [_cachePath stringByAppendingFormat:@"%@/", _cacheUser];
 	}
 	else
 	{
-		pathName = self.cachePath;
+		pathName = _cachePath;
 	}
 	
 	if ( NO == [_fileManager fileExistsAtPath:pathName] )

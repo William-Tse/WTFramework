@@ -11,8 +11,6 @@
 //  WTFramework
 //
 
-#import "WT_UIBoard.h"
-
 #import "UIView+WT_Extension.h"
 
 #undef	KEY_NAME
