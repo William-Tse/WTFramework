@@ -13,7 +13,7 @@
 
 #import "WT_Precompile.h"
 
-#import "AFNetworking.h"
+#import <AFNetworking.h>
 #import "NSObject+WT_Http.h"
 
 NS_ASSUME_NONNULL_BEGIN
