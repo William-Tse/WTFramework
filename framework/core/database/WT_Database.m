@@ -1117,12 +1117,9 @@
         NSString *sql = [self internalCompileCreate:table];
         [self __internalResetCreate];
         
-        if( [self.db executeUpdate:sql] )
-        {
-            return self;
-        }
+        [self.db executeUpdate:sql];
         
-        return nil;
+        return self;
     };
 }
 
@@ -1724,10 +1721,15 @@
             BOOL ret = [self.db executeUpdate:sql withArgumentsInArray:allValues];
             if ( ret )
             {
-                return self.db.changes;
+                NSInteger rowId = (NSInteger)self.db.lastInsertRowId;
+                if(rowId)
+                {
+                    return (NSInteger)rowId;
+                }
+                return 0;
             }
         }
-        return 0;
+        return -1;
     };
 }
 

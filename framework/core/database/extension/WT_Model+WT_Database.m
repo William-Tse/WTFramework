@@ -122,7 +122,16 @@
     
     return ^ (WTDatabase *db){
         db.modelClass = [self class];
-        db.CREATE().SET(dict).REPLACE();
+        NSInteger pId = db.CREATE().SET(dict).REPLACE();
+        
+        if(pId>0)
+        {
+            id primaryKey = [[self class] primaryKey];
+            if( primaryKey && [primaryKey isKindOfClass:[NSString class]])
+            {
+                [self setValue:@(pId) forKey:primaryKey];
+            }
+        }
     };
 }
 

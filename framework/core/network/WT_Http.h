@@ -37,7 +37,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)get:(NSString *)url parameters:(nullable id)parameters success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder;
 + (void)post:(NSString *)url parameters:(nullable id)parameters success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder;
-+ (void)upload:(NSString *)url parameters:(id)parameters files:(void (^)(id <AFMultipartFormData> formData))files progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder;
++ (void)upload:(NSString *)url parameters:(id)parameters formData:(void (^)(id <AFMultipartFormData> formData))formData progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder;
 + (void)download:(NSString *)url parameters:(id)parameters savePath:(NSString *)savePath  progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder;
 
 + (void)cancelRequestByIdentifier:(NSUInteger)identifier;

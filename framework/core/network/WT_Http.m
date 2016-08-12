@@ -16,6 +16,7 @@
 #import "WT_System.h"
 #import "NSObject+WT_Extension.h"
 #import "NSObject+WT_Http.h"
+#import "AFURLRequestSerialization.h"
 
 @interface WTHttp ()
 
@@ -118,7 +119,7 @@
     NSLog(@"**HTTP_REQUEST**\nGET:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] GET:requestUrl parameters:dictParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    NSURLSessionDataTask *task = [[[self sharedInstance] manager] GET:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
@@ -171,7 +172,7 @@
     NSLog(@"**HTTP_REQUEST**\nPOST:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] GET:requestUrl parameters:dictParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    NSURLSessionDataTask *task = [[[self sharedInstance] manager] POST:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
@@ -215,7 +216,7 @@
     }
 }
 
-+ (void)upload:(NSString *)url parameters:(id)parameters files:(void (^)(id <AFMultipartFormData> formData))files progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(BOOL (^)(NSError *err))failure responder:(id)responder
++ (void)upload:(NSString *)url parameters:(id)parameters formData:(void (^)(id <AFMultipartFormData> formData))formData progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(BOOL (^)(NSError *err))failure responder:(id)responder
 {
     NSString *requestUrl = [self requestUrlWithString:url];
     NSDictionary *dictParams = parameters ? [parameters toQueryParameters] : nil;
@@ -224,42 +225,55 @@
     NSLog(@"**HTTP_REQUEST**\nPOST:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] POST:requestUrl parameters:dictParams constructingBodyWithBlock:files progress:progress success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    AFHTTPSessionManager *manager = [[self sharedInstance] manager];
+    
+    NSError *error = nil;
+    NSMutableURLRequest *request = [manager.requestSerializer multipartFormRequestWithMethod:@"POST" URLString:requestUrl parameters:dictParams constructingBodyWithBlock:formData error:&error];
+    if(!request)
+    {
+        [self handleError:error task:nil failure:failure];
+        return;
+    }
+    
+    NSProgress * kProgress = nil;
+    
+    NSURLSessionUploadTask *task = nil;
+    task = [manager uploadTaskWithStreamedRequest:request progress:&kProgress completionHandler:^(NSURLResponse * _Nonnull response, id  _Nullable responseObject, NSError * _Nullable error) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
         }
-        id responseData = responseObject;
-        if([[self sharedInstance] beforeSuccess])
+        if(error)
         {
-            responseData = [[self sharedInstance] beforeSuccess](task.response, responseObject);
+            [self handleError:error task:task failure:failure];
         }
-        if(success)
+        else
         {
-            success(responseData);
+            id responseData = responseObject;
+            if([[self sharedInstance] beforeSuccess])
+            {
+                responseData = [[self sharedInstance] beforeSuccess](task.response, responseData);
+            }
+            if(success)
+            {
+                success(responseData);
+            }
+            if([[self sharedInstance] afterSuccess])
+            {
+                [[self sharedInstance] afterSuccess](task.response, responseData);
+            }
         }
-        if([[self sharedInstance] afterSuccess])
+    }];
+    [manager setTaskDidSendBodyDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionTask * _Nonnull task, int64_t bytesSent, int64_t totalBytesSent, int64_t totalBytesExpectedToSend) {
+        if(kProgress)
         {
-            [[self sharedInstance] afterSuccess](task.response, responseObject);
-        }
-        
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull err) {
-        if(responder)
-        {
-            [responder cancelRequestByIdentifier:task.taskIdentifier];
-        }
-        BOOL handled = NO;
-        if([[self sharedInstance] beforeFailure])
-        {
-            handled = [[self sharedInstance] beforeFailure](task.response, err);
-        }
-        if(!handled && failure)
-        {
-            handled = failure(err);
-        }
-        if(!handled && [[self sharedInstance] afterFailure])
-        {
-            [[self sharedInstance] afterFailure](task.response, err);
+            kProgress.totalUnitCount = totalBytesExpectedToSend;
+            kProgress.completedUnitCount = totalBytesSent;
+            
+            if(progress)
+            {
+                progress(kProgress);
+            }
         }
     }];
     if(responder)
@@ -277,51 +291,78 @@
     NSLog(@"**HTTP_REQUEST**\nGET:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] GET:requestUrl parameters:dictParams progress:nil success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
-        if(responder)
-        {
-            [responder cancelRequestByIdentifier:task.taskIdentifier];
-        }
-        id responseData = responseObject;
-        if([[self sharedInstance] beforeSuccess])
-        {
-            responseData = [[self sharedInstance] beforeSuccess](task.response, responseObject);
-        }
-        if([responseData isKindOfClass:[NSData class]])
-        {
-            [(NSData *)responseData writeToFile:savePath options:NSDataWritingAtomic error:NULL];
-        }
-        if(success)
-        {
-            success(responseData);
-        }
-        if([[self sharedInstance] afterSuccess])
-        {
-            [[self sharedInstance] afterSuccess](task.response, responseObject);
-        }
+    AFHTTPSessionManager *manager = [[self sharedInstance] manager];
+    
+    NSError *error = nil;
+    NSURLRequest *request = [manager.requestSerializer requestWithMethod:@"GET" URLString:requestUrl parameters:dictParams error:&error];
+    if(!request)
+    {
+        [self handleError:error task:nil failure:failure];
+        return;
+    }
+    
+    NSProgress * kProgress = nil;
+    NSURLSessionDownloadTask *task = nil;
+    task = [manager downloadTaskWithRequest:request progress:&kProgress destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+        return [NSURL URLWithString:[savePath stringByAppendingPathComponent:response.suggestedFilename]];
+    } completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nonnull filePath, NSError * _Nonnull error) {
         
-    } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull err) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
         }
-        BOOL handled = NO;
-        if([[self sharedInstance] beforeFailure])
+        if(error)
         {
-            handled = [[self sharedInstance] beforeFailure](task.response, err);
+            [self handleError:error task:task failure:failure];
         }
-        if(!handled && failure)
+        else
         {
-            handled = failure(err);
+            id responseData = nil;
+            if([[self sharedInstance] beforeSuccess])
+            {
+                responseData = [[self sharedInstance] beforeSuccess](task.response, [NSData dataWithContentsOfFile:[filePath toString]]);
+            }
+            if(success)
+            {
+                success(responseData ?: [NSData dataWithContentsOfFile:[filePath toString]]);
+            }
+            if([[self sharedInstance] afterSuccess])
+            {
+                [[self sharedInstance] afterSuccess](task.response, responseData ?: [NSData dataWithContentsOfFile:[filePath toString]]);
+            }
         }
-        if(!handled && [[self sharedInstance] afterFailure])
+    }];
+    [manager setDownloadTaskDidWriteDataBlock:^(NSURLSession * _Nonnull session, NSURLSessionDownloadTask * _Nonnull downloadTask, int64_t bytesWritten, int64_t totalBytesWritten, int64_t totalBytesExpectedToWrite) {
+        if(kProgress)
         {
-            [[self sharedInstance] afterFailure](task.response, err);
+            kProgress.totalUnitCount = totalBytesExpectedToWrite;
+            kProgress.completedUnitCount = totalBytesWritten;
+            if(progress)
+            {
+                progress(kProgress);
+            }
         }
     }];
     if(responder)
     {
         [responder responderWithSession:task];
+    }
+}
+
++ (void)handleError:(NSError *)error task:(NSURLSessionTask *)task failure:(nullable BOOL (^)(NSError *err))failure
+{
+    BOOL handled = NO;
+    if([[self sharedInstance] beforeFailure])
+    {
+        handled = [[self sharedInstance] beforeFailure](task.response, error);
+    }
+    if(!handled && failure)
+    {
+        handled = failure(error);
+    }
+    if(!handled && [[self sharedInstance] afterFailure])
+    {
+        [[self sharedInstance] afterFailure](task.response, error);
     }
 }
 

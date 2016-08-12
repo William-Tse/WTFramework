@@ -11,6 +11,6 @@
 //  WTFramework
 //
 
-#import "WT_Precompile.h"
+#import "WT_Config.h"
 #import "WT_Core.h"
 #import "WT_View.h"

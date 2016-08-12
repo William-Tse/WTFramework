@@ -136,8 +136,8 @@ It is an utility framework used on iOS, which implement by Objective-C, packages
 
   s.xcconfig = { "HEADER_SEARCH_PATHS" => "$(SDKROOT)/usr/include/CommonCrypto" }
 
-  # s.dependency 'AFNetworking', '~> 2.6'
-  # s.dependency 'FMDB'
+  s.dependency 'AFNetworking', '~> 2.6'
+  s.dependency 'FMDB'
   # s.dependency 'Masonry'
 
 end
