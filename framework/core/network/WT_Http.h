@@ -25,6 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)setBaseUrl:(NSString *)baseUrl;
 + (void)setMemoryCapacity:(NSUInteger)memoryCapacity;
 + (void)setdiskCapacity:(NSUInteger)diskCapacity;
++ (void)setSecurityPolicy:(AFSecurityPolicy *)securityPolicy;
 
 + (void)setRequestHeader:(NSString *)value forKey:(NSString *)key;
 

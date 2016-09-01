@@ -13,6 +13,7 @@
 
 #import "UIButton+WT_Event.h"
 
+#import "UIView+WT_Extension.h"
 #import "NSObject+WT_Extension.h"
 #import "NSDictionary+WT_Extension.h"
 
@@ -36,6 +37,14 @@
     [btn addSignalListener:self.TouchUpInside];
     
     return btn;
+}
+
+- (void)setName:(NSString *)name
+{
+    [super setName:name];
+    
+    [self addSignalListener:self.TouchDown];
+    [self addSignalListener:self.TouchUpInside];
 }
 
 - (void)dealloc

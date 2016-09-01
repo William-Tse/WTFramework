@@ -97,18 +97,6 @@
     {
         [self sendToReceiver:receiver];
     }
-//    if([responder isKindOfClass:[UIView class]])
-//    {
-//        receiver = [(UIView *)responder superview];
-//    }
-//    else if([responder isKindOfClass:[UIViewController class]])
-//    {
-//        receiver = [(UIViewController *)responder parentViewController];
-//    }
-//    if(receiver)
-//    {
-//        [self sendToReceiver:receiver];
-//    }
 }
 
 - (void)sendToReceiver:(UIResponder *)receiver
@@ -121,7 +109,14 @@
         if(_handled) return;
     }
     
-    NSArray *arrNames = [_name componentsSeparatedByString:@"."];
+    
+    NSString *signalName = _name;
+    if(![_name hasPrefix:@"signal."])
+    {
+        signalName = [NSString stringWithFormat:@"signal.%@", _name];
+    }
+    
+    NSArray *arrNames = [signalName componentsSeparatedByString:@"."];
     if(arrNames.count>1)
     {
         NSString *clazz = arrNames[1];
@@ -221,7 +216,11 @@
     WTSignalBlock value = [dictSignals objectForKey:signal];
     if(!value || value != callback)
     {
-        [[self dictionarySignals] setObject:callback forKey:signal];
+        if(callback) {
+            [[self dictionarySignals] setObject:callback forKey:signal];
+        } else {
+            [[self dictionarySignals] setObject:[NSNull null] forKey:signal];
+        }
         
         [self didAddSignalListener:signal];
     }
@@ -240,11 +239,6 @@
 
 - (void)sendSignal:(NSString *)signal withObject:(nullable id)object
 {
-    if(![signal hasPrefix:@"signal."])
-    {
-        signal = [NSString stringWithFormat:@"signal.%@", signal];
-    }
-    
     NSArray *arrNames = [signal componentsSeparatedByString:@"."];
     if(arrNames.count>2)
     {

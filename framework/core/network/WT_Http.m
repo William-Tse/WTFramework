@@ -29,9 +29,9 @@
 @property (nonatomic, copy) BOOL (^beforeFailure)(NSURLResponse *response, id responseData);
 @property (nonatomic, copy) void (^afterFailure)(NSURLResponse *response, id responseData);
 
-@property (nonatomic, strong, readonly) AFHTTPSessionManager *manager;
 @property (nonatomic, strong, readonly) NSURLCache *cache;
 @property (nonatomic, strong, readonly) NSURLSessionConfiguration *configuration;
+@property (nonatomic, strong) AFSecurityPolicy *securityPolicy;
 
 @end
 
@@ -54,8 +54,6 @@
                                                           diskCapacity:50 * 1024 * 1024
                                                               diskPath:nil];
         [config setURLCache:cache];
-        
-        _manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:config];
     }
     return self;
 }
@@ -73,6 +71,11 @@
 + (void)setdiskCapacity:(NSUInteger)diskCapacity
 {
     [[[self sharedInstance] cache] setDiskCapacity:diskCapacity];
+}
+
++ (void)setSecurityPolicy:(AFSecurityPolicy *)securityPolicy
+{
+    [[self sharedInstance] setSecurityPolicy:securityPolicy];
 }
 
 + (void)setRequestHeader:(NSString *)value forKey:(NSString *)key
@@ -100,6 +103,14 @@
     [[self sharedInstance] setAfterFailure:afterFailure];
 }
 
++ (AFHTTPSessionManager *)createManager
+{
+    NSURLSessionConfiguration *config = [[self sharedInstance] configuration];
+    AFHTTPSessionManager *manager = [[AFHTTPSessionManager alloc] initWithSessionConfiguration:config];
+    manager.securityPolicy = [[self sharedInstance] securityPolicy];
+    return manager;
+}
+
 + (NSString *)requestUrlWithString:(NSString *)url
 {
     if(![url rangeOfString:@"://"].length)
@@ -112,6 +123,8 @@
 
 + (void)get:(NSString *)url parameters:(nullable id)parameters success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder
 {
+    AFHTTPSessionManager *manager = [self createManager];
+    
     NSString *requestUrl = [self requestUrlWithString:url];
     NSDictionary *dictParams = parameters ? [parameters toQueryParameters] : nil;
     
@@ -119,7 +132,7 @@
     NSLog(@"**HTTP_REQUEST**\nGET:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] GET:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
+    NSURLSessionDataTask *task = [manager GET:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nonnull responseObject) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
@@ -165,6 +178,8 @@
 
 + (void)post:(NSString *)url parameters:(id)parameters success:(void (^)(id data))success failure:(BOOL (^)(NSError *err))failure responder:(id)responder
 {
+    AFHTTPSessionManager *manager = [self createManager];
+    
     NSString *requestUrl = [self requestUrlWithString:url];
     NSDictionary *dictParams = parameters ? [parameters toQueryParameters] : nil;
     
@@ -172,7 +187,7 @@
     NSLog(@"**HTTP_REQUEST**\nPOST:%@\n%@", requestUrl, dictParams);
 #endif
     
-    NSURLSessionDataTask *task = [[[self sharedInstance] manager] POST:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+    NSURLSessionDataTask *task = [manager POST:requestUrl parameters:dictParams success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         if(responder)
         {
             [responder cancelRequestByIdentifier:task.taskIdentifier];
@@ -218,14 +233,14 @@
 
 + (void)upload:(NSString *)url parameters:(id)parameters formData:(void (^)(id <AFMultipartFormData> formData))formData progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(BOOL (^)(NSError *err))failure responder:(id)responder
 {
+    AFHTTPSessionManager *manager = [self createManager];
+    
     NSString *requestUrl = [self requestUrlWithString:url];
     NSDictionary *dictParams = parameters ? [parameters toQueryParameters] : nil;
     
 #if !(defined(_DEBUG) || defined(DEBUG))
     NSLog(@"**HTTP_REQUEST**\nPOST:%@\n%@", requestUrl, dictParams);
 #endif
-    
-    AFHTTPSessionManager *manager = [[self sharedInstance] manager];
     
     NSError *error = nil;
     NSMutableURLRequest *request = [manager.requestSerializer multipartFormRequestWithMethod:@"POST" URLString:requestUrl parameters:dictParams constructingBodyWithBlock:formData error:&error];
@@ -276,6 +291,7 @@
             }
         }
     }];
+    [task resume];
     if(responder)
     {
         [responder responderWithSession:task];
@@ -284,14 +300,14 @@
 
 + (void)download:(NSString *)url parameters:(id)parameters savePath:(NSString *)savePath  progress:(nullable void (^)(NSProgress *progess))progress success:(nullable void (^)(id data))success failure:(nullable BOOL (^)(NSError *err))failure responder:(nullable id)responder
 {
+    AFHTTPSessionManager *manager = [self createManager];
+    
     NSString *requestUrl = [self requestUrlWithString:url];
     NSDictionary *dictParams = parameters ? [parameters toQueryParameters] : nil;
     
 #if !(defined(_DEBUG) || defined(DEBUG))
     NSLog(@"**HTTP_REQUEST**\nGET:%@\n%@", requestUrl, dictParams);
 #endif
-    
-    AFHTTPSessionManager *manager = [[self sharedInstance] manager];
     
     NSError *error = nil;
     NSURLRequest *request = [manager.requestSerializer requestWithMethod:@"GET" URLString:requestUrl parameters:dictParams error:&error];
@@ -343,6 +359,7 @@
             }
         }
     }];
+    [task resume];
     if(responder)
     {
         [responder responderWithSession:task];

@@ -4,6 +4,11 @@
 
 WTFramework is an utility framework used on iOS, it packages some frequently-used capabilities, such as serialization, local database, file cache, network, signal, ... and more. Here thanks for bee framework, giving me so many good precedents and ideas. So I just standing on the shoulders of giants.
 
+## How to use
+
+#### Requirements
+
+
 ## Features
 
 ### Generics
